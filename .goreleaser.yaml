@@ -5,7 +5,7 @@ before:
     - go mod tidy
 
 gomod:
-  proxy: true
+  proxy: false
   env:
     - GOPROXY=https://proxy.golang.org,direct
     - GOSUMDB=sum.golang.org
@@ -97,6 +97,7 @@ announce:
     # message_template: (Default) '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'.
 
 changelog:
+  disable: true
   sort: asc
   use: github
   filters:
