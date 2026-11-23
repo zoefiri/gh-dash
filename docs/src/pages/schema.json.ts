@@ -170,6 +170,12 @@ export function GET() {
             "Specifies whether to show author-role icons in the dashboard.\nSet this value to `false` to hide the author-role icons.\nSee the [Theme Icons](theme#icons) section and\n[Icon Colors](theme#colors.icons) section for\nconfiguration options you can set to change the author-role icons and author-role icon colors.\n",
           type: "boolean",
         },
+        jiraBaseUrl: {
+          title: "Jira Base URL",
+          description:
+            "Base URL of the Jira site, for example `https://example.atlassian.net`.\nWhen set, PR groups created with `groupByTicket` link to `<jiraBaseUrl>/browse/<TICKET>`.\n",
+          type: "string",
+        },
         smartFilteringAtLaunch: {
           title: "Smart Filtering At Launch",
           description:

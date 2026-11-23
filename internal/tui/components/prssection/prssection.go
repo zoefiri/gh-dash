@@ -27,6 +27,11 @@ type Model struct {
 	section.BaseModel
 	Prs []prrow.Data
 	cfg config.PrsSectionConfig
+
+	grouped   bool
+	collapsed map[string]bool
+	order     map[string]int
+	nextOrder int
 }
 
 func NewModel(
@@ -155,6 +160,12 @@ func (m *Model) Update(msg tea.Msg) (section.Section, tea.Cmd) {
 
 		case key.Matches(msg, keys.PRKeys.WatchChecks):
 			cmd = m.watchChecks()
+
+		case key.Matches(msg, keys.PRKeys.GroupByTicket):
+			m.toggleGrouping()
+
+		case key.Matches(msg, keys.PRKeys.ToggleGroup):
+			m.toggleCurrentGroup()
 		}
 
 	case tasks.UpdatePRMsg:
@@ -203,7 +214,12 @@ func (m *Model) Update(msg tea.Msg) (section.Section, tea.Cmd) {
 			if m.PageInfo != nil {
 				m.Prs = append(m.Prs, msg.Prs...)
 			} else {
+				m.resetOrder()
 				m.Prs = msg.Prs
+			}
+			m.recordOrder(msg.Prs)
+			if m.grouped {
+				m.applyOrder()
 			}
 			m.TotalCount = msg.TotalCount
 			m.PageInfo = &msg.PageInfo
@@ -520,6 +536,7 @@ func (m *Model) FetchNextPageSectionRows() []tea.Cmd {
 
 func (m *Model) ResetRows() {
 	m.Prs = nil
+	m.resetGrouping()
 	m.BaseModel.ResetRows()
 }
 
@@ -603,12 +620,16 @@ func (m Model) GetPagerContent() string {
 		timeElapsed = fmt.Sprintf("~%v ago", timeElapsed)
 	}
 	if m.TotalCount > 0 {
+		position := "-"
+		if currItem := m.Table.GetCurrItem(); currItem >= 0 {
+			position = fmt.Sprint(currItem + 1)
+		}
 		pagerContent = fmt.Sprintf(
 			"%v Updated %v • %v %v/%v (fetched %v)",
 			constants.WaitingIcon,
 			timeElapsed,
 			m.SingularForm,
-			m.Table.GetCurrItem()+1,
+			position,
 			m.TotalCount,
 			len(m.Table.Rows),
 		)

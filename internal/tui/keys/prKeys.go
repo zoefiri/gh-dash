@@ -29,6 +29,8 @@ type PRKeyMap struct {
 	ApproveWorkflows     key.Binding
 	ToggleSmartFiltering key.Binding
 	ViewIssues           key.Binding
+	GroupByTicket        key.Binding
+	ToggleGroup          key.Binding
 }
 
 var PRKeys = PRKeyMap{
@@ -108,6 +110,14 @@ var PRKeys = PRKeyMap{
 		key.WithKeys("s"),
 		key.WithHelp("s", "switch to issues"),
 	),
+	GroupByTicket: key.NewBinding(
+		key.WithKeys("b"),
+		key.WithHelp("b", "group by ticket"),
+	),
+	ToggleGroup: key.NewBinding(
+		key.WithKeys("z"),
+		key.WithHelp("z", "collapse/expand group"),
+	),
 }
 
 func PRFullHelp() []key.Binding {
@@ -130,6 +140,8 @@ func PRFullHelp() []key.Binding {
 		PRKeys.ApproveWorkflows,
 		PRKeys.ToggleSmartFiltering,
 		PRKeys.ViewIssues,
+		PRKeys.GroupByTicket,
+		PRKeys.ToggleGroup,
 	}
 }
 
@@ -196,6 +208,10 @@ func rebindPRKeys(keys []config.Keybinding) error {
 			key = &PRKeys.ViewIssues
 		case "summaryViewMore":
 			key = &PRKeys.SummaryViewMore
+		case "groupByTicket":
+			key = &PRKeys.GroupByTicket
+		case "toggleGroup":
+			key = &PRKeys.ToggleGroup
 		default:
 			return fmt.Errorf("unknown built-in pr key: '%s'", prKey.Builtin)
 		}

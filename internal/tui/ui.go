@@ -78,6 +78,11 @@ const (
 	ModeSection
 )
 
+// mouseClickHandler is implemented by sections that react to mouse clicks.
+type mouseClickHandler interface {
+	HandleMouseClick(tea.MouseClickMsg) bool
+}
+
 type Repositories struct {
 	GHRepo  *repository.Repository
 	GitRepo *gitm.Repository
@@ -436,19 +441,43 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, m.openBrowser())
 
 			case key.Matches(msg, keys.PRKeys.Approve):
+				if currRowData == nil {
+					return m, nil
+				}
 				return m, m.openSidebarForPRInput(m.prView.SetIsApproving)
 
 			case key.Matches(msg, keys.PRKeys.Assign):
+				if currRowData == nil {
+					return m, nil
+				}
 				return m, m.openSidebarForPRInput(m.prView.SetIsAssigning)
 
 			case key.Matches(msg, keys.PRKeys.Unassign):
+				if currRowData == nil {
+					return m, nil
+				}
 				return m, m.openSidebarForPRInput(m.prView.SetIsUnassigning)
 
 			case key.Matches(msg, keys.PRKeys.Label):
+				if currRowData == nil {
+					return m, nil
+				}
 				return m, m.openSidebarForPRInput(m.prView.SetIsLabeling)
 
 			case key.Matches(msg, keys.PRKeys.Comment):
+				if currRowData == nil {
+					return m, nil
+				}
 				return m, m.openSidebarForPRInput(m.prView.SetIsCommenting)
+
+			case key.Matches(msg, keys.PRKeys.GroupByTicket),
+				key.Matches(msg, keys.PRKeys.ToggleGroup):
+				if currSection == nil {
+					return m, nil
+				}
+				sectionCmd := m.updateCurrentSection(msg)
+				m.footer.SetLeftSection(currSection.GetPagerContent())
+				return m, tea.Batch(sectionCmd, m.onViewedRowChanged())
 
 			case key.Matches(msg, keys.PRKeys.Close):
 				if currRowData != nil {
@@ -875,6 +904,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return nil
 			}
 			cmds = append(cmds, openCmd)
+		}
+
+		if clickable, ok := currSection.(mouseClickHandler); ok && clickable.HandleMouseClick(msg) {
+			cmds = append(cmds, m.onViewedRowChanged())
 		}
 
 	case tea.WindowSizeMsg:

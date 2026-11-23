@@ -252,3 +252,37 @@ func TestFullHelpIncludesCustomNotificationBindings(t *testing.T) {
 	// Clean up
 	SetNotificationSubject(NotificationSubjectNone)
 }
+
+func TestRebindPRKeys_GroupingBuiltins(t *testing.T) {
+	origGroup := PRKeys.GroupByTicket
+	origToggle := PRKeys.ToggleGroup
+	defer func() {
+		PRKeys.GroupByTicket = origGroup
+		PRKeys.ToggleGroup = origToggle
+	}()
+
+	if got := PRKeys.GroupByTicket.Keys(); len(got) != 1 || got[0] != "b" {
+		t.Errorf("expected default groupByTicket key b, got %v", got)
+	}
+	if got := PRKeys.ToggleGroup.Keys(); len(got) != 1 || got[0] != "z" {
+		t.Errorf("expected default toggleGroup key z, got %v", got)
+	}
+
+	err := rebindPRKeys([]config.Keybinding{
+		{Builtin: "groupByTicket", Key: "G"},
+		{Builtin: "toggleGroup", Key: "Z", Name: "fold"},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if got := PRKeys.GroupByTicket.Keys(); len(got) != 1 || got[0] != "G" {
+		t.Errorf("expected groupByTicket rebound to G, got %v", got)
+	}
+	if got := PRKeys.ToggleGroup.Keys(); len(got) != 1 || got[0] != "Z" {
+		t.Errorf("expected toggleGroup rebound to Z, got %v", got)
+	}
+	if desc := PRKeys.ToggleGroup.Help().Desc; desc != "fold" {
+		t.Errorf("expected toggleGroup help to be renamed, got %q", desc)
+	}
+}
