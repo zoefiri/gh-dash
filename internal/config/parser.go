@@ -329,6 +329,7 @@ type Config struct {
 	Pager                    Pager                        `yaml:"pager"`
 	ConfirmQuit              bool                         `yaml:"confirmQuit"`
 	ShowAuthorIcons          bool                         `yaml:"showAuthorIcons,omitempty"`
+	JiraBaseUrl              string                       `yaml:"jiraBaseUrl,omitempty"`
 	SmartFilteringAtLaunch   bool                         `yaml:"smartFilteringAtLaunch"                         default:"true"`
 	IncludeReadNotifications bool                         `yaml:"includeReadNotifications"                       default:"true"`
 }

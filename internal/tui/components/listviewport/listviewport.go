@@ -112,6 +112,33 @@ func (m *Model) PrevItem() int {
 	return m.currId
 }
 
+func (m *Model) SetCurrItem(id int) {
+	m.currId = utils.Max(0, utils.Min(id, m.NumCurrentItems-1))
+}
+
+// EnsureVisible scrolls the minimum amount needed to bring the content lines
+// in [top, bottom) into view.
+func (m *Model) EnsureVisible(top, bottom int) {
+	offset := m.viewport.YOffset()
+	if top < offset {
+		m.viewport.SetYOffset(top)
+	} else if bottom > offset+m.viewport.Height() {
+		m.viewport.SetYOffset(bottom - m.viewport.Height())
+	}
+}
+
+// AlignToCurrItem realigns the fixed-height scroll bookkeeping so that the
+// current item sits at the top of the viewport. It is used when leaving a
+// layout whose items have varying heights.
+func (m *Model) AlignToCurrItem() {
+	m.topBoundId = m.currId
+	m.bottomBoundId = utils.Min(
+		m.NumCurrentItems-1,
+		m.currId+m.getNumPrsPerPage()-1,
+	)
+	m.viewport.SetYOffset(m.currId * m.ListItemHeight)
+}
+
 func (m *Model) FirstItem() int {
 	m.currId = 0
 	m.viewport.GotoTop()

@@ -87,6 +87,20 @@ Press <kbd>v</kbd> to approve the PR. When you do, the dashboard uses the
 `gh pr review --approve` command to approve the PR. This will prompt you to add an optional comment to the approval. The comment prompt will be prefilled with
 `defaults.prApproveComment` if it is set in your configuration, which defaults to "LGTM".
 
+## `b` - Group PRs by ticket
+
+Press <kbd>b</kbd> to group the PRs of the current section by the Jira-style ticket key
+(for example `PV-6277`) found in their titles. Each group is shown under a header with the ticket
+key and a link. PRs without a ticket key are listed last under "No ticket". Press <kbd>b</kbd> again
+to restore the original order.
+
+Set `jiraBaseUrl` in your configuration to show a link to `<jiraBaseUrl>/browse/<TICKET>` in each header.
+
+## `z` - Collapse or expand a group
+
+Press <kbd>z</kbd> to collapse or expand the group under the cursor. Group headers can be selected
+with the navigation keys, and clicking a header toggles its group.
+
 ## `w` - Watch PR checks
 
 Press <kbd>w</kbd> to watch the PR check and get a desktop notification if they succeed or fail. When you do, the dashboard uses the

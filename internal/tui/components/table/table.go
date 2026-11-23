@@ -27,6 +27,11 @@ type Model struct {
 	dimensions     constants.Dimensions
 	rowsViewport   listviewport.Model
 	ContentHeight  int // Optional: override content height (0 = use default from config)
+
+	// Optional grouping. When groups is empty the table behaves as a plain list.
+	groups      []Group
+	onHeader    bool
+	headerGroup int
 }
 
 type Column struct {
@@ -120,11 +125,19 @@ func (m *Model) ResetCurrItem() {
 	m.rowsViewport.ResetCurrItem()
 }
 
+// GetCurrItem returns the index of the selected row, or -1 when a group header
+// is selected.
 func (m *Model) GetCurrItem() int {
+	if m.onHeader {
+		return -1
+	}
 	return m.rowsViewport.GetCurrItem()
 }
 
 func (m *Model) PrevItem() int {
+	if m.IsGrouped() {
+		return m.moveCursor(-1)
+	}
 	currItem := m.rowsViewport.PrevItem()
 	m.SyncViewPortContent()
 
@@ -132,6 +145,9 @@ func (m *Model) PrevItem() int {
 }
 
 func (m *Model) NextItem() int {
+	if m.IsGrouped() {
+		return m.moveCursor(1)
+	}
 	currItem := m.rowsViewport.NextItem()
 	m.SyncViewPortContent()
 
@@ -139,6 +155,9 @@ func (m *Model) NextItem() int {
 }
 
 func (m *Model) FirstItem() int {
+	if m.IsGrouped() {
+		return m.moveCursorTo(0)
+	}
 	currItem := m.rowsViewport.FirstItem()
 	m.SyncViewPortContent()
 
@@ -146,6 +165,9 @@ func (m *Model) FirstItem() int {
 }
 
 func (m *Model) LastItem() int {
+	if m.IsGrouped() {
+		return m.moveCursorTo(-1)
+	}
 	currItem := m.rowsViewport.LastItem()
 	m.SyncViewPortContent()
 
@@ -165,6 +187,10 @@ func (m *Model) cacheColumnWidths() {
 func (m *Model) SyncViewPortContent() {
 	headerColumns := m.renderHeaderColumns()
 	m.cacheColumnWidths()
+	if m.IsGrouped() {
+		m.syncGroupedContent(headerColumns)
+		return
+	}
 	renderedRows := make([]string, 0, len(m.Rows))
 	for i := range m.Rows {
 		renderedRows = append(renderedRows, m.renderRow(i, headerColumns))
@@ -308,7 +334,7 @@ func (m *Model) renderBody() string {
 func (m *Model) renderRow(rowId int, headerColumns []string) string {
 	var style lipgloss.Style
 
-	if m.rowsViewport.GetCurrItem() == rowId {
+	if !m.onHeader && m.rowsViewport.GetCurrItem() == rowId {
 		style = m.ctx.Styles.Table.SelectedCellStyle
 	} else {
 		style = m.ctx.Styles.Table.CellStyle
